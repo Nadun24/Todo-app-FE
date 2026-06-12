@@ -24,13 +24,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'No token returned from server' }, { status: 500 })
   }
 
-  const response = NextResponse.json({ success: true, user })
-  response.cookies.set('auth-token', token, {
-    httpOnly: true,
+  const cookieOpts = {
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
-  })
+  }
+
+  const response = NextResponse.json({ success: true, user })
+  response.cookies.set('auth-token', token, { ...cookieOpts, httpOnly: true })
+  response.cookies.set('user-name', user?.name ?? '', { ...cookieOpts, httpOnly: false })
   return response
 }

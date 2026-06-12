@@ -14,5 +14,6 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ success: true })
   response.cookies.delete('auth-token')
+  response.cookies.delete('user-name')
   return response
 }

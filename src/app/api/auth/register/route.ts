@@ -31,13 +31,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Registered but login failed' }, { status: 500 })
   }
 
-  const response = NextResponse.json({ success: true, user: loginData.data?.user })
-  response.cookies.set('auth-token', token, {
-    httpOnly: true,
+  const cookieOpts = {
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
-  })
+  }
+
+  const user = loginData.data?.user
+  const response = NextResponse.json({ success: true, user })
+  response.cookies.set('auth-token', token, { ...cookieOpts, httpOnly: true })
+  response.cookies.set('user-name', user?.name ?? '', { ...cookieOpts, httpOnly: false })
   return response
 }
