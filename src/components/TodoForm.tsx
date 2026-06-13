@@ -10,6 +10,13 @@ interface Props {
 
 const emptyForm = { title: '', description: '', priority: '', due_date: '' }
 
+const priorities = [
+  { value: '',       label: 'None',   active: 'bg-gray-100 text-gray-700 border-gray-300',   idle: 'border-gray-200 text-gray-400 hover:border-gray-300' },
+  { value: 'low',    label: 'Low',    active: 'bg-emerald-100 text-emerald-700 border-emerald-400', idle: 'border-gray-200 text-gray-400 hover:border-emerald-300 hover:text-emerald-600' },
+  { value: 'medium', label: 'Medium', active: 'bg-amber-100 text-amber-700 border-amber-400',  idle: 'border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-600' },
+  { value: 'high',   label: 'High',   active: 'bg-red-100 text-red-700 border-red-400',        idle: 'border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-600' },
+]
+
 export function TodoForm({ todo, onClose, onSave }: Props) {
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
@@ -21,7 +28,8 @@ export function TodoForm({ todo, onClose, onSave }: Props) {
         title: todo.title,
         description: todo.description ?? '',
         priority: todo.priority ?? '',
-        due_date: todo.due_date ?? '',
+        // slice(0,10) converts "2026-06-13T00:00:00.000000Z" → "2026-06-13" for <input type="date">
+        due_date: todo.due_date ? todo.due_date.slice(0, 10) : '',
       })
     } else {
       setForm(emptyForm)
@@ -59,8 +67,7 @@ export function TodoForm({ todo, onClose, onSave }: Props) {
         return
       }
 
-      const saved: Todo = data.data ?? data
-      onSave(saved)
+      onSave(data.data ?? data)
     } catch {
       setError('Something went wrong')
     } finally {
@@ -71,12 +78,10 @@ export function TodoForm({ todo, onClose, onSave }: Props) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 px-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-auth">
-        {/* Modal header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">
-              {todo ? 'Edit Task' : 'New Task'}
-            </h2>
+            <h2 className="text-lg font-bold text-gray-900">{todo ? 'Edit Task' : 'New Task'}</h2>
             <p className="text-xs text-gray-400 mt-0.5">
               {todo ? 'Update the task details below' : 'Fill in the details for your new task'}
             </p>
@@ -101,7 +106,7 @@ export function TodoForm({ todo, onClose, onSave }: Props) {
             </div>
           )}
 
-          {/* Title — floating label */}
+          {/* Title */}
           <div className="relative">
             <input
               id="title"
@@ -132,32 +137,34 @@ export function TodoForm({ todo, onClose, onSave }: Props) {
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Priority */}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5 ml-1">Priority</label>
-              <select
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white transition-all"
-              >
-                <option value="">None</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+          {/* Priority — colored label buttons */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-2 ml-1">Priority</label>
+            <div className="flex gap-2">
+              {priorities.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, priority: p.value })}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                    form.priority === p.value ? p.active : p.idle
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Due date */}
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1.5 ml-1">Due Date</label>
-              <input
-                type="date"
-                value={form.due_date}
-                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
+          {/* Due date */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1.5 ml-1">Due Date</label>
+            <input
+              type="date"
+              value={form.due_date}
+              onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+              className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+            />
           </div>
 
           {/* Actions */}
